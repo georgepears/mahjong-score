@@ -1,0 +1,16 @@
+<div class="container my-5">
+  <h1>Players</h1>
+
+  <mat-card class="mb-3" *ngFor="let player of game.game.players, index as i">
+    <h3 class="mb-0">Player {{i+1}}</h3>
+    <mat-form-field appearance="standard" class="w-100">
+      <mat-label>Player {{i+1}} Name</mat-label>
+      <input [(ngModel)]="player.name" autocomplete="off" matInput placeholder="Player {{i+1}} Name">
+      <mat-icon matSuffix>person</mat-icon>
+    </mat-form-field>
+  </mat-card>
+
+  <div class="text-end">
+    <button (click)="game.save()" routerLink="/score-round" mat-raised-button color="primary" class="mb-4">Next</button>
+  </div>
+</div>

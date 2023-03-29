@@ -1,0 +1,30 @@
+<mat-toolbar color="primary">
+  <button mat-button (click)="menu = !menu">
+    <mat-icon>menu</mat-icon>
+  </button>
+  <span>Mahjong Score 1.2</span>
+</mat-toolbar>
+
+<div *ngIf="menu">
+  <div class="container border-1">
+    <!-- <button *ngFor="" routerLink="/scores" (click)="gameService.setCurrentGame(i)" mat-menu-item></button> -->
+
+    <mat-selection-list [multiple]="false">
+      <mat-list-option *ngFor="let game of gameService.games; index as i" [selected]="game == gameService.game" (selectedChange)="gameService.setCurrentGame(i);" (click)="menu = false">
+        {{game.date | date: 'd MMM y, H:mm'}} - <ng-container *ngFor="let player of game.players; index as i">{{player.name}}<ng-container *ngIf="!(i+1 == game.players.length) && player.name">, </ng-container></ng-container>
+      </mat-list-option>
+    </mat-selection-list>
+  </div>
+  <mat-divider></mat-divider>
+</div>
+
+<!-- <div class="container my-5 bg-light"> -->
+<!--   <mat-card> -->
+<!--     <mat-card-content> -->
+<!--       <h2>Choose game</h2> -->
+<!--        -->
+<!--     </mat-card-content> -->
+<!--   </mat-card> -->
+<!-- </div> -->
+
+<router-outlet></router-outlet>

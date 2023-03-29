@@ -1,0 +1,51 @@
+<div class="container my-5">
+  <h1>Round {{game.currentRound + 1}}</h1>
+  <h3 class="mb-4">Enter scores for round {{game.currentRound + 1}}</h3>
+
+  <h3>Who won?</h3>
+
+  <div class="row">
+    <div class="col-6" *ngFor="let player of game.game.players, index as i">
+      <mat-card [ngClass]="{'text-primary outline outline-primary' : game.game.rounds[game.currentRound].winner == i}"
+                (click)="game.game.rounds[game.currentRound].winner = i" class="mb-3 text-center pt-4">
+        <mat-icon class="material-symbols-outlined user mb-3">person</mat-icon>
+        <h4 class="mb-0">{{player.name || 'Player ' + (i + 1)}}</h4>
+      </mat-card>
+    </div>
+  </div>
+
+  <div *ngIf="game.currentRoundWinner() !== -1">
+    <h3>Winner's Score</h3>
+
+    <mat-card class="mb-3">
+      <h4 class="mb-0">{{game.game.players[game.currentRoundWinner()].name}}'s Score (winner)</h4>
+      <mat-form-field appearance="standard" class="w-100">
+        <mat-label>Score</mat-label>
+        <input type="number" autocomplete="off" [(ngModel)]="game.game.rounds[game.currentRound].scores[game.currentRoundWinner()]"
+               matInput placeholder="Score">
+      </mat-form-field>
+    </mat-card>
+
+    <div *ngIf="game.game.rounds[game.currentRound].scores[game.currentRoundWinner()]">
+      <h3>Other player's Scores</h3>
+      <div *ngFor="let player of game.game.players, index as i">
+        <mat-card class="mb-3" *ngIf="i !== game.currentRoundWinner()">
+        <h4 class=" mb-0">{{player.name}}'s Score</h4>
+        <mat-form-field appearance="standard" class="w-100">
+          <mat-label>Score</mat-label>
+          <input type="number" autocomplete="off" [(ngModel)]="game.game.rounds[game.currentRound].scores[i]"
+                 matInput placeholder="Score">
+        </mat-form-field>
+        </mat-card>
+      </div>
+
+      <div class="text-end">
+        <button (click)="game.calculateScores()" routerLink="/scores" mat-raised-button color="primary" class="mb-4">Next</button>
+      </div>
+
+    </div>
+  </div>
+
+
+
+</div>
