@@ -2,7 +2,7 @@
   <h1>Players</h1>
 
   <mat-card class="mb-3" *ngFor="let player of game.game.players, index as i">
-    <h3 class="mb-0">Player {{i+1}}</h3>
+    <h3 class="mb-0">Player {{i+1}} ({{game.currentRound.winds[i]}})</h3>
     <mat-form-field appearance="standard" class="w-100">
       <mat-label>Player {{i+1}} Name</mat-label>
       <input [(ngModel)]="player.name" autocomplete="off" matInput placeholder="Player {{i+1}} Name">

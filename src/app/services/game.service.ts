@@ -9,15 +9,13 @@ import {Router} from "@angular/router";
 })
 export class GameService {
 
-  currentGame = 0;
-  currentRound = 0;
+  currentGamePos = 0;
+  currentRoundPos = 0;
 
   games: Game[] = [];
-  get game() {return this.games[this.currentGame]};
-
 
   constructor(public router: Router) {
-    this.load()
+    this.load();
   }
 
   load() {
@@ -27,6 +25,10 @@ export class GameService {
       this.setCurrentGame(this.games.length - 1);
       console.log(this.games);
       if (this.games.length < 1) {
+        this.newGame();
+      }
+      else if (this.games[1].rounds[0]?.winds == null) {
+        this.games = new Array<Game>;
         this.newGame();
       }
     } else {
@@ -45,17 +47,17 @@ export class GameService {
       let player = new Player();
       newGame.players.push(player);
     }
-    newGame.rounds.push(new Round());
+    newGame.rounds.push(new Round(['East', 'South', 'West', 'North'])); // Default order for new game
     newGame.date = new Date(Date.now());
 
     this.games.push(newGame);
-    this.setCurrentGame(this.games.length - 1)
-    this.save()
+    this.setCurrentGame(this.games.length - 1);
+    this.save();
   }
 
   setCurrentGame(index: number) {
-    this.currentGame = index;
-    console.log(this.currentGame);
+    this.currentGamePos = index;
+    console.log(this.currentGamePos);
     console.log(this.game);
     console.log(this.games);
     if (this.game.rounds.length == 0 || this.game.rounds[0].results.length == 0) {
@@ -69,47 +71,69 @@ export class GameService {
   }
 
   newRound() {
-    this.game.rounds.push(new Round());
-    this.currentRound++;
-    this.save()
+    // Calculate next round order
+    let newRoundWinds = this.currentRound.winds;
+    if (this.currentRoundWinnerPos != this.currentRound.winds.indexOf('East')) {
+        // If winner not east, calculate new order
+        newRoundWinds = [newRoundWinds[3], newRoundWinds[0], newRoundWinds[1], newRoundWinds[2]];
+    }
+    this.game.rounds.push(new Round(newRoundWinds));
+    this.currentRoundPos++;
+    this.save();
   }
 
-  currentRoundWinner(): number {
-    return this.game.rounds[this.currentRound].winner ?? -1;
-  }
 
   calculateScores() {
-    // Get winner + multiply score by number of other players (array len - 1)
-    let currentRound = this.game.rounds[this.currentRound]
-    console.log(currentRound);
+    console.log(this.currentRound);
+    this.currentRound.results = [0, 0, 0, 0];
 
-    // Winner takes points off each of the losers
-    currentRound.results[currentRound.winner!] = currentRound.scores[currentRound.winner!] * (this.game.players.length - 1)
+    this.currentRound.scores.forEach((s1, i1) => {
+      if (i1 != this.currentRound.winner) {
 
-    // Player A's score is 2A - B - C - winner's score (B + C are two other player's scores)
-    currentRound.scores.forEach((s1, i1) => {
-      if (i1 != currentRound.winner) { // For each loser
-        currentRound.results[i1] = (currentRound.scores[i1] * 2) - currentRound.scores[currentRound.winner!];
-        currentRound.scores.forEach((s2, i2) => {
-          if (i2 != currentRound.winner && i1 != i2) { // For each other loser
-            currentRound.results[i1] -= currentRound.scores[i2];
+        // For each non-winner (player x), calculate amount to be paid to winner and taken from player x
+        let toPayWinner = this.currentRound.scores[this.currentRound.winner!] * this.windMultiplier(i1) * this.windMultiplier(this.currentRound.winner!);
+        this.currentRound.results[this.currentRound.winner!] += toPayWinner;
+        this.currentRound.results[i1!] -= toPayWinner;
+
+        this.currentRound.scores.forEach((s2, i2) => {
+          if (i2 != this.currentRound.winner && i1 != i2) {
+            // For each other player that isn't the winner or player x, calculate differences to be passed around players
+            let toPay = (this.currentRound.scores[i1] - this.currentRound.scores[i2]) * this.windMultiplier(i1) * this.windMultiplier(i2);
+            this.currentRound.results[i1] += toPay;
           }
-        })
+        });
       }
-    })
+    });
 
-    console.log('Scores: ' + currentRound.scores);
-    console.log('Results: ' + currentRound.results);
-    // For players without 'result'
+    console.log('\n\nScores: ' + this.currentRound.scores);
+    console.log('Results: ' + this.currentRound.results);
 
     this.save();
   }
 
+
+  windMultiplier(pos: number): number {
+    return pos == this.currentRound.winds?.indexOf('East') ? 2 : 1;
+  }
+
+  get game() {
+    return this.games[this.currentGamePos];
+  };
+
+  get currentRound(): Round {
+    return this.game.rounds[this.currentRoundPos];
+  }
+
+  get currentRoundWinnerPos(): number {
+    return this.game.rounds[this.currentRoundPos].winner ?? -1;
+  }
+
+
   get totals(): number[]  {
     let total = new Array(this.game.players.length).fill(0);
     this.game.rounds.forEach((round) => {
-      console.log(round.results)
-      total = total.map((r, i) => r + round.results[i])
+      console.log(round.results);
+      total = total.map((r, i) => r + round.results[i]);
       console.log(total);
     })
     return total;
