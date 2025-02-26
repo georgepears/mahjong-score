@@ -19,19 +19,14 @@ export class GameService {
   }
 
   load() {
-    try {
-      let games = localStorage.getItem('games');
-      if (games != null) {
-        this.games = JSON.parse(games) as Game[];
-        if (!this.validateGames(this.games)) {
-          throw new Error("Invalid game data");
-        }
-        this.setCurrentGame(this.games.length - 1);
-      } else {
-        this.initializeNewGame();
+    let games = localStorage.getItem('games');
+    if (games != null) {
+      this.games = JSON.parse(games) as Game[];
+      if (!this.validateGames(this.games)) {
+        this.clearGames();
       }
-    } catch (error) {
-      console.error("Error loading games:", error);
+      this.setCurrentGame(this.games.length - 1);
+    } else {
       this.initializeNewGame();
     }
   }
@@ -48,6 +43,12 @@ export class GameService {
   validateGames(games: Game[]): boolean {
     // Add your validation logic here
     return games.every(game => game.players.length === 4 && game.rounds.length > 0);
+  }
+
+  clearGames() {
+    console.warn("Invalid game data found. Clearing storage and initializing a new game.");
+    localStorage.removeItem('games');
+    this.initializeNewGame();
   }
 
   newGame() {
